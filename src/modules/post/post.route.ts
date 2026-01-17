@@ -12,4 +12,6 @@ router.post(
   PostController.createPost,
 );
 
+router.get("/:id", PostController.getPostById);
+
 export const postRoutes = router;

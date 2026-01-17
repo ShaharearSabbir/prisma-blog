@@ -17,6 +17,7 @@ interface GetPostsProps {
   status?: PostStatus | undefined;
   authorId?: string | undefined;
   skip: number;
+  page: number;
   limit: number;
   sortBy: string;
   orderBy: "asc" | "desc";
@@ -29,6 +30,7 @@ const getPosts = async ({
   status,
   authorId,
   skip,
+  page,
   limit,
   sortBy,
   orderBy,
@@ -75,11 +77,40 @@ const getPosts = async ({
     where.authorId = authorId;
   }
 
-  const result = await prisma.post.findMany({
+  const allPost = await prisma.post.findMany({
     take: limit,
     skip,
     where,
     orderBy: { [sortBy]: orderBy },
+  });
+
+  const total = await prisma.post.count({
+    where,
+  });
+
+  const totalPage = Math.ceil(total / limit);
+
+  return {
+    posts: allPost,
+    pagination: {
+      totalPost: total,
+      page,
+      limit,
+      totalPage,
+    },
+  };
+};
+
+const getPostById = async (id: string) => {
+  const result = await prisma.post.update({
+    where: {
+      postId: id,
+    },
+    data: {
+      views: {
+        increment: 1,
+      },
+    },
   });
 
   return result;
@@ -88,4 +119,5 @@ const getPosts = async ({
 export const postService = {
   createPost,
   getPosts,
+  getPostById,
 };

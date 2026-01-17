@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { postService } from "./post.service";
 import sendRes from "../../utils/sendRes";
 import { PostStatus } from "../../../generated/prisma/enums";
+import paginationAndSort from "../../utils/paginationAndSort";
 
 const createPost = async (req: Request, res: Response) => {
   try {
@@ -35,13 +36,7 @@ const getPosts = async (req: Request, res: Response) => {
 
     const authorId = req.query.authorId as string | undefined;
 
-    const page = Number(req.query.page ?? 1);
-    const limit = Number(req.query.limit ?? 10);
-
-    const skip = (page - 1) * limit;
-
-    const sortBy = (req.query.sortBy || "createdAt") as string;
-    const orderBy = (req.query.orderBy || "desc") as "asc" | "desc";
+    const { skip, limit, sortBy, orderBy, page } = paginationAndSort(req.query);
 
     const result = await postService.getPosts({
       search,
@@ -51,6 +46,7 @@ const getPosts = async (req: Request, res: Response) => {
       authorId,
       skip,
       limit,
+      page,
       sortBy,
       orderBy,
     });
@@ -60,7 +56,18 @@ const getPosts = async (req: Request, res: Response) => {
   }
 };
 
+const getPostById = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const result = await postService.getPostById(id as string);
+    sendRes(res, 200, true, "successfully retrieved post", result!);
+  } catch (error: any) {
+    sendRes(res, 500, false, error.message);
+  }
+};
+
 export const PostController = {
   createPost,
   getPosts,
+  getPostById,
 };
