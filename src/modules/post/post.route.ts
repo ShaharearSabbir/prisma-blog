@@ -6,6 +6,8 @@ const router = Router();
 
 router.get("/", PostController.getPosts);
 
+router.get("/stats", auth(UserRole.ADMIN), PostController.postStats);
+
 router.get(
   "/me",
   auth(UserRole.USER, UserRole.ADMIN),
@@ -13,6 +15,8 @@ router.get(
 );
 
 router.get("/:id", PostController.getPostById);
+
+router.get("/stats", auth(UserRole.ADMIN), PostController.postStats);
 
 router.post(
   "/",
@@ -24,6 +28,12 @@ router.patch(
   "/:id",
   auth(UserRole.USER, UserRole.ADMIN),
   PostController.updatePost,
+);
+
+router.delete(
+  "/:id",
+  auth(UserRole.USER, UserRole.ADMIN),
+  PostController.deletePost,
 );
 
 export const postRoutes = router;

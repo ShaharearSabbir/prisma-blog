@@ -72,7 +72,7 @@ const getMyPost = async (req: Request, res: Response) => {
     const authorId = req.user?.id;
 
     const result = await postService.getMyPost(authorId as string);
-    sendRes(res, 200, true, "successfully retrieved post", result!);
+    sendRes(res, 201, true, "successfully retrieved post", result!);
   } catch (error: any) {
     sendRes(res, 500, false, error.message);
   }
@@ -83,15 +83,41 @@ const updatePost = async (req: Request, res: Response) => {
     const authorId = req.user?.id;
     const postId = req.params.id;
     const data = req.body;
-    const role = req.user?.role as UserRole;
+    const isAdmin = req.user?.role === UserRole.ADMIN;
 
     const result = await postService.updatePost(
       authorId as string,
       postId as string,
       data,
-      role,
+      isAdmin,
     );
     sendRes(res, 200, true, "Successfully Updated Post", result);
+  } catch (error: any) {
+    sendRes(res, 500, false, error.message);
+  }
+};
+
+const deletePost = async (req: Request, res: Response) => {
+  try {
+    const authorId = req.user?.id;
+    const postId = req.params.id;
+    const isAdmin = req.user?.role === UserRole.ADMIN;
+
+    const result = await postService.deletePost(
+      postId as string,
+      authorId as string,
+      isAdmin,
+    );
+    sendRes(res, 201, true, "Successfully Deleted Post", result);
+  } catch (error: any) {
+    sendRes(res, 500, false, error.message);
+  }
+};
+
+const postStats = async (req: Request, res: Response) => {
+  try {
+    const result = await postService.postStats();
+    sendRes(res, 200, true, "Successfully retrieved stats", result);
   } catch (error: any) {
     sendRes(res, 500, false, error.message);
   }
@@ -103,4 +129,6 @@ export const PostController = {
   getPostById,
   getMyPost,
   updatePost,
+  deletePost,
+  postStats,
 };

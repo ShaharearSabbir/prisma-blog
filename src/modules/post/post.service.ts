@@ -193,7 +193,7 @@ const updatePost = async (
   authorId: string,
   postId: string,
   data: Partial<Post>,
-  role: UserRole,
+  isAdmin: boolean,
 ) => {
   const { title, content, thumbnail, isFeatured, status, tags } = data;
 
@@ -205,7 +205,7 @@ const updatePost = async (
     ...(tags && { tags }),
   };
 
-  if (role === UserRole.ADMIN && isFeatured !== undefined) {
+  if (isAdmin && isFeatured !== undefined) {
     updatedData.isFeatured = isFeatured as boolean;
   }
 
@@ -214,7 +214,7 @@ const updatePost = async (
       await tx.post.findFirstOrThrow({
         where: {
           postId: postId,
-          ...(role === UserRole.USER && { authorId: authorId }),
+          ...(!isAdmin && { authorId: authorId }),
         },
         select: {
           postId: true,
@@ -242,10 +242,126 @@ const updatePost = async (
   return result;
 };
 
+const deletePost = async (
+  postId: string,
+  authorId: string,
+  isAdmin: boolean,
+) => {
+  const result = await prisma.$transaction(async (tx) => {
+    try {
+      const isExist = await tx.post.findFirstOrThrow({
+        where: {
+          postId: postId,
+          ...(!isAdmin && { authorId: authorId }),
+        },
+        select: {
+          postId: true,
+        },
+      });
+
+      console.log(isExist);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        throw new Error(
+          "You're not owner of this post or the post doesn't exist",
+        );
+      }
+      throw error;
+    }
+
+    const post = await tx.post.delete({
+      where: {
+        postId,
+      },
+    });
+
+    return post;
+  });
+
+  return result;
+};
+
+const postStats = async () => {
+  const result = await prisma.$transaction(async (tx) => {
+    const totalPosts = await tx.post.count();
+    const totalPublishedPosts = await tx.post.count({
+      where: {
+        status: PostStatus.PUBLISHED,
+      },
+    });
+
+    const totalArchivedPosts = await tx.post.count({
+      where: {
+        status: PostStatus.ARCHIVED,
+      },
+    });
+
+    const totalDraftPosts = await tx.post.count({
+      where: {
+        status: PostStatus.DRAFT,
+      },
+    });
+
+    const totalComments = await tx.comment.count();
+
+    const totalApprovedComments = await tx.comment.count({
+      where: {
+        status: CommentStatus.APPROVED,
+      },
+    });
+
+    const totalRejectedComments = await tx.comment.count({
+      where: {
+        status: CommentStatus.REJECTED,
+      },
+    });
+
+    const totalUsers = await tx.user.count();
+
+    const adminCount = await tx.user.count({
+      where: {
+        role: UserRole.ADMIN,
+      },
+    });
+
+    const userCount = await tx.user.count({
+      where: {
+        role: UserRole.USER,
+      },
+    });
+
+    const totalView = await tx.post.aggregate({
+      _sum: {
+        views: true,
+      },
+    });
+
+    return {
+      totalPosts,
+      totalPublishedPosts,
+      totalArchivedPosts,
+      totalDraftPosts,
+      totalComments,
+      totalApprovedComments,
+      totalRejectedComments,
+      totalUsers,
+      adminCount,
+      userCount,
+      totalView: totalView._sum.views,
+    };
+  });
+  return result;
+};
+
 export const postService = {
   createPost,
   getPosts,
   getPostById,
   getMyPost,
   updatePost,
+  deletePost,
+  postStats,
 };
