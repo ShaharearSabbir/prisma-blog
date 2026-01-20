@@ -3,6 +3,7 @@ import { postService } from "./post.service";
 import sendRes from "../../utils/sendRes";
 import { PostStatus } from "../../../generated/prisma/enums";
 import paginationAndSort from "../../utils/paginationAndSort";
+import { UserRole } from "../../middleware/auth";
 
 const createPost = async (req: Request, res: Response) => {
   try {
@@ -66,8 +67,40 @@ const getPostById = async (req: Request, res: Response) => {
   }
 };
 
+const getMyPost = async (req: Request, res: Response) => {
+  try {
+    const authorId = req.user?.id;
+
+    const result = await postService.getMyPost(authorId as string);
+    sendRes(res, 200, true, "successfully retrieved post", result!);
+  } catch (error: any) {
+    sendRes(res, 500, false, error.message);
+  }
+};
+
+const updatePost = async (req: Request, res: Response) => {
+  try {
+    const authorId = req.user?.id;
+    const postId = req.params.id;
+    const data = req.body;
+    const role = req.user?.role as UserRole;
+
+    const result = await postService.updatePost(
+      authorId as string,
+      postId as string,
+      data,
+      role,
+    );
+    sendRes(res, 200, true, "Successfully Updated Post", result);
+  } catch (error: any) {
+    sendRes(res, 500, false, error.message);
+  }
+};
+
 export const PostController = {
   createPost,
   getPosts,
   getPostById,
+  getMyPost,
+  updatePost,
 };

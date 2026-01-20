@@ -58,7 +58,78 @@ const getCommentById = async (commentId: string) => {
   return result;
 };
 
+const deleteComment = async (commentId: string, authorId: string) => {
+  const isExist = await prisma.comment.findFirst({
+    where: {
+      commentId,
+      authorId,
+    },
+    select: {
+      commentId: true,
+    },
+  });
+
+  if (!isExist) {
+    throw new Error("comment not found");
+  }
+
+  return await prisma.comment.delete({
+    where: {
+      commentId: isExist.commentId,
+    },
+  });
+};
+
+const updateComment = async (
+  commentId: string,
+  authorId: string,
+  data: { content?: string; status?: CommentStatus },
+) => {
+  const isExist = await prisma.comment.findFirst({
+    where: {
+      commentId,
+      authorId,
+    },
+    select: {
+      commentId: true,
+    },
+  });
+
+  if (!isExist) {
+    throw new Error("comment not found");
+  }
+
+  return await prisma.comment.update({
+    where: {
+      commentId: isExist.commentId,
+    },
+    data,
+  });
+};
+
+const moderateComment = async (commentId: string, status: CommentStatus) => {
+  const commentData = await prisma.comment.findFirstOrThrow({
+    where: {
+      commentId,
+    },
+  });
+
+  if (commentData.status == status) {
+    throw new Error(`comment status: ${status} is already up to date`);
+  }
+
+  return await prisma.comment.update({
+    where: {
+      commentId,
+    },
+    data: { status: status },
+  });
+};
+
 export const commentService = {
   createComment,
   getCommentById,
+  deleteComment,
+  updateComment,
+  moderateComment,
 };

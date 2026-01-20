@@ -1,9 +1,9 @@
-import { User } from "better-auth/types";
+import { FullUser } from "./FullUser";
 
 global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: FullUser;
     }
   }
 }

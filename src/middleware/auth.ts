@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { auth as betterAuth } from "../lib/auth";
 import sendRes from "../utils/sendRes";
 import { User } from "better-auth/types";
+import { FullUser } from "../types/FullUser";
 
 export enum UserRole {
   ADMIN = "ADMIN",
@@ -16,23 +17,27 @@ const auth = (...roles: UserRole[]) => {
       });
 
       if (!session) {
-        sendRes(res, 401, false, "unauthorized access");
+        return sendRes(res, 401, false, "unauthorized access");
       }
 
       if (!session?.user.emailVerified) {
-        sendRes(res, 403, false, "email verified required");
+        return sendRes(res, 403, false, "email verified required");
+      }
+
+      if (session?.user.status !== "ACTIVE") {
+        return sendRes(res, 403, false, "account activation required");
       }
 
       const currentUserRole = session?.user.role as UserRole;
 
       if (roles && roles.length > 0 && !roles.includes(currentUserRole)) {
-        sendRes(res, 401, false, "unauthorized access");
+        return sendRes(res, 401, false, "unauthorized access");
       }
 
-      req.user = session?.user as User;
-      next();
+      req.user = session?.user as FullUser;
+      return next();
     } catch (error) {
-      next(error);
+      return next(error);
     }
   };
 };
