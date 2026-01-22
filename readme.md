@@ -1,10 +1,3 @@
-Got it 👍
-Below is **everything consolidated into ONE complete `README.md` file**, ready to **copy–paste directly** into your backend GitHub repo.
-No extra explanations — just the final README.
-
----
-
-````markdown
 # 📝 Blog Engine Backend
 
 A high-performance blogging backend built with **Node.js**, **Express**, and **TypeScript**.  
@@ -70,7 +63,6 @@ EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_password
-````
 
 > ⚠️ **Never commit `.env` files to GitHub**
 
