@@ -4,6 +4,7 @@ interface ResJson {
   success: boolean;
   message: string;
   data?: Record<string, any>;
+  errorDetails?: Record<string, any>;
 }
 
 const sendRes = (
@@ -12,6 +13,7 @@ const sendRes = (
   success: boolean,
   message: string,
   data?: Record<string, any>,
+  errorDetails?: Record<string, any>
 ) => {
   const resJson: ResJson = {
     success,
@@ -20,6 +22,10 @@ const sendRes = (
 
   if (data) {
     resJson.data = data;
+  }
+
+  if(errorDetails) {
+    resJson.errorDetails = errorDetails;
   }
 
   res.status(statusCode).json(resJson);

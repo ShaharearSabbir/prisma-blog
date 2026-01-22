@@ -1,9 +1,13 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { commentService } from "./comment.service";
 import sendRes from "../../utils/sendRes";
 import { CommentStatus } from "../../../generated/prisma/enums";
 
-const createComment = async (req: Request, res: Response) => {
+const createComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const userId = req.user?.id;
     const newComment = req.body;
@@ -12,23 +16,31 @@ const createComment = async (req: Request, res: Response) => {
     const result = await commentService.createComment(newComment);
     sendRes(res, 201, true, "successfully posted", result);
   } catch (error: any) {
-    sendRes(res, 500, false, error.message);
+    next(error);
   }
 };
 
-const getCommentById = async (req: Request, res: Response) => {
+const getCommentById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const commentId = req.params.id;
 
-    const result = await commentService.getCommentById(commentId!);
+    const result = await commentService.getCommentById(commentId as string);
 
     sendRes(res, 200, true, "Comment Retrieved Successfully", result!);
   } catch (error: any) {
-    sendRes(res, 500, false, error.message);
+    next(error);
   }
 };
 
-const deleteComment = async (req: Request, res: Response) => {
+const deleteComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const authorId = req.user?.id;
     const commentId = req.params.id;
@@ -38,11 +50,15 @@ const deleteComment = async (req: Request, res: Response) => {
     );
     sendRes(res, 201, true, "Comment Deleted Successfully", result);
   } catch (error: any) {
-    sendRes(res, 500, false, error.message);
+    next(error);
   }
 };
 
-const updateComment = async (req: Request, res: Response) => {
+const updateComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const authorId = req.user?.id;
     const commentId = req.params.id;
@@ -53,11 +69,15 @@ const updateComment = async (req: Request, res: Response) => {
     );
     sendRes(res, 201, true, "Comment Updated Successfully", result);
   } catch (error: any) {
-    sendRes(res, 500, false, error.message);
+    next(error);
   }
 };
 
-const moderateComment = async (req: Request, res: Response) => {
+const moderateComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const status = req.body.status as CommentStatus;
     const commentId = req.params.id;
@@ -67,7 +87,7 @@ const moderateComment = async (req: Request, res: Response) => {
     );
     sendRes(res, 201, true, "Comment Updated Successfully", result);
   } catch (error: any) {
-    sendRes(res, 500, false, error.message);
+    next(error);
   }
 };
 

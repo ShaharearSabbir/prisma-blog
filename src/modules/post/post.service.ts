@@ -210,7 +210,7 @@ const updatePost = async (
   }
 
   const result = await prisma.$transaction(async (tx) => {
-    try {
+
       await tx.post.findFirstOrThrow({
         where: {
           postId: postId,
@@ -220,17 +220,7 @@ const updatePost = async (
           postId: true,
         },
       });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2025"
-      ) {
-        throw new Error(
-          "You're not owner of this post or the post doesn't exist",
-        );
-      }
-      throw error;
-    }
+
 
     return await tx.post.update({
       where: {
